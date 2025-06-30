@@ -1,0 +1,16 @@
+  const data = [
+    { Comuna: "Talcahuano", Tipo: "Residuos domiciliarios", value: 65853 },
+    { Comuna: "Talcahuano", Tipo: "Residuos industriales", value: 205647 },
+
+    { Comuna: "Concepción", Tipo: "Residuos domiciliarios", value: 50721 },
+    { Comuna: "Concepción", Tipo: "Residuos industriales", value: 138197 },
+
+    { Comuna: "San Pedro de la Paz", Tipo: "Residuos domiciliarios", value: 54910 },
+    { Comuna: "San Pedro de la Paz", Tipo: "Residuos industriales", value: 79523 },
+
+    { Comuna: "Coronel", Tipo: "Residuos domiciliarios", value: 51438 },
+    { Comuna: "Coronel", Tipo: "Residuos industriales", value: 42525 },
+
+    { Comuna: "Los Ángeles", Tipo: "Residuos domiciliarios", value: 84295 },
+    { Comuna: "Los Ángeles", Tipo: "Residuos industriales", value: 20529 },
+  ];

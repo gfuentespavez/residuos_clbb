@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const svg = d3.create("svg")
         .attr("viewBox", [0, 0, width, height])
-        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif; background-color: #000");
 
     const sankey = d3.sankey()
         .nodeId(d => d.name)

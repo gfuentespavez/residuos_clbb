@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Mapa con Arcos D3 y Leaflet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+    .leaflet-tooltip { font-size: 10px; font-weight: light; }
+    .conector { fill: none; stroke: steelblue; stroke-width: 4; opacity: 0.8; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  const locations = {
+    "Tirúa": [-38.3332, -73.4864],
+    "Lebu": [-37.6074, -73.6537],
+    "Contulmo": [-38.0153, -73.2435],
+    "Cañete": [-37.8018, -73.3964],
+    "Los Álamos": [-37.6284, -73.4695],
+    "Relleno Los Ángeles": [-37.4692, -72.3537],
+    "Relleno Cemarc Penco": [-36.7206, -72.9993],
+    "Relleno Sanitario Arauco Curanilahue:": [-37.409, -73.364]
+  };
+
+  const connections = {
+    "Tirúa": ["Relleno Los Ángeles", 0 ],
+    "Lebu": ["Relleno Cemarc Penco", 112],
+    "Contulmo": ["Relleno Los Ángeles", 112],
+    "Cañete": ["Relleno Los Ángeles", 109],
+    "Los Álamos": ["Relleno Cemarc Penco", 105]
+  };
+
+  const map = L.map('map').setView([-37.8, -73.0], 8);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  for (const [name, [lat, lon]] of Object.entries(locations)) {
+    const isRelleno = name.startsWith("Relleno");
+    L.circleMarker([lat, lon], {
+      radius: 6,
+      color: isRelleno ? 'red' : 'black',
+      fillOpacity: 1
+    }).addTo(map).bindTooltip(name, { permanent: true, direction: 'top' });
+  }
+
+  map.whenReady(() => {
+    const svg = d3.select(map.getPanes().overlayPane).append("svg");
+    const g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+    function project([lat, lng]) {
+      return map.latLngToLayerPoint(new L.LatLng(lat, lng));
+    }
+
+    function update() {
+      const bounds = map.getBounds();
+      const topLeft = map.latLngToLayerPoint(bounds.getNorthWest());
+      const bottomRight = map.latLngToLayerPoint(bounds.getSouthEast());
+
+      svg.style("width", (bottomRight.x - topLeft.x) + "px")
+              .style("height", (bottomRight.y - topLeft.y) + "px")
+              .style("left", topLeft.x + "px")
+              .style("top", topLeft.y + "px");
+
+      g.attr("transform", `translate(${-topLeft.x},${-topLeft.y})`);
+
+      const arcs = Object.entries(connections).map(([comuna, [relleno, km]]) => {
+        const start = project(locations[comuna]);
+        const end = project(locations[relleno]);
+
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const dr = Math.sqrt(dx * dx + dy * dy) * 0.6;  // arco
+
+        const d = `M${start.x},${start.y} A${dr},${dr} 0 0,1 ${end.x},${end.y}`;
+        const midX = (start.x + end.x) / 2;
+        const midY = (start.y + end.y) / 2;
+
+        return { d, km, midX, midY };
+      });
+
+      const paths = g.selectAll("path").data(arcs);
+      paths.enter().append("path")
+              .attr("class", "conector")
+              .merge(paths)
+              .attr("d", d => d.d);
+
+      /*const labels = g.selectAll("text").data(arcs);
+      labels.enter().append("text")
+              .attr("font-size", "10px")
+              .attr("fill", "blue")
+              .attr("text-anchor", "middle")
+              .merge(labels)
+              .attr("x", d => d.midX)
+              .attr("y", d => d.midY - 5)
+              .text(d => `${d.km} km`);*/
+    }
+
+    map.on("zoomend viewreset moveend", update);
+    update();
+  });
+</script>
+</body>
+</html>

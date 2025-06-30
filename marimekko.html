@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Marimekko Chart con Descarga e Impresión</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 30px;
+      background-color: #09122C;
+      color: white;
+    }
+    button {
+      margin-right: 10px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: none;
+      background-color: #3A5A98;
+      color: white;
+    }
+    button:hover {
+      background-color: #2A3E6E;
+    }
+  </style>
+</head>
+<body>
+
+<h2 style="color: white;">Producción y Costo de Residuos por Comuna</h2>
+
+<div style="margin-bottom: 15px;">
+  <button onclick="downloadSVG()">Descargar SVG</button>
+  <button onclick="window.print()">Imprimir Gráfico</button>
+</div>
+
+<div id="chart"></div>
+
+<script type="module">
+  const data = [
+    { Comuna: "Talcahuano", Tipo: "Residuos domiciliarios", value: 65853 },
+    { Comuna: "Talcahuano", Tipo: "Residuos industriales", value: 205647 },
+
+    { Comuna: "Concepción", Tipo: "Residuos domiciliarios", value: 50721 },
+    { Comuna: "Concepción", Tipo: "Residuos industriales", value: 138197 },
+
+    { Comuna: "San Pedro de la Paz", Tipo: "Residuos domiciliarios", value: 54910 },
+    { Comuna: "San Pedro de la Paz", Tipo: "Residuos industriales", value: 79523 },
+
+    { Comuna: "Los Ángeles", Tipo: "Residuos domiciliarios", value: 84295 },
+    { Comuna: "Los Ángeles", Tipo: "Residuos industriales", value: 20529 },
+
+    { Comuna: "Coronel", Tipo: "Residuos domiciliarios", value: 51438 },
+    { Comuna: "Coronel", Tipo: "Residuos industriales", value: 42525 },
+
+  ];
+
+  const width = 2160;
+  const height = 1350;
+  const marginTop = 60;
+  const marginRight = 40;
+  const marginBottom = 10;
+  const marginLeft = 1;
+  const columnSpacing = 10;
+  const columnInnerPadding = 0.5; // to fix corner clipping
+  const blockSpacing = 8; // vertical gap between residuos types
+
+  const color = d3.scaleOrdinal()
+          .domain(["Residuos domiciliarios", "Residuos industriales"])
+          .range(["#872341", "#E17564"]);
+
+  // Build initial treemap layout
+  const root = d3.treemap()
+          .round(true)
+          .tile(d3.treemapSliceDice)
+          .size([width - marginLeft - marginRight, height - marginTop - marginBottom])(
+                  d3.hierarchy(d3.group(data, d => d.Comuna, d => d.Tipo))
+                          .sum(d => d.value)
+                          .eachAfter(d => {
+                            if (d.depth === 1) {
+                              d.x0 += columnInnerPadding;
+                              d.x1 -= columnInnerPadding;
+                            }
+                          })
+          );
+
+  // Add vertical spacing inside each comuna column between residuos types
+  root.each(d => {
+    if (d.depth === 1 && d.children) {
+      const totalHeight = d.y1 - d.y0;
+      const n = d.children.length;
+      const spacing = (n - 1) * blockSpacing;
+      const available = totalHeight - spacing;
+      const totalValue = d.value;
+
+      let y = d.y0;
+      d.children.forEach(child => {
+        const h = available * (child.value / totalValue);
+        child.y0 = y;
+        child.y1 = y + h;
+        y = child.y1 + blockSpacing;
+      });
+    }
+  });
+
+  // Apply margins
+  root.each(d => {
+    d.x0 += marginLeft;
+    d.x1 += marginLeft;
+    d.y0 += marginTop;
+    d.y1 += marginTop;
+  });
+
+  // Shift columns horizontally to create spacing
+  root.children.forEach((child, i) => {
+    const shift = i * columnSpacing;
+    child.x0 += shift;
+    child.x1 += shift;
+    if (child.children) {
+      child.children.forEach(grandchild => {
+        grandchild.x0 += shift;
+        grandchild.x1 += shift;
+      });
+    }
+  });
+
+  const svg = d3.create("svg")
+          .attr("viewBox", [0, 0, width, height])
+          .attr("width", width)
+          .attr("height", height)
+          .attr("style", "background: #09122C; max-width: 100%; height: auto; font: 10px sans-serif;");
+
+  const node = svg.selectAll("g")
+          .data(root.descendants())
+          .join("g")
+          .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+  const format = d => d.toLocaleString();
+
+  const column = node.filter(d => d.depth === 1);
+
+  // Comuna label alineado a la izquierda
+  column.append("text")
+          .attr("x", 4)  // padding desde el borde izquierdo
+          .attr("y", -20)
+          .attr("text-anchor", "start")
+          .style("font-weight", "bold")
+          .style("font-size", "25px")
+          .style("fill", "white")
+          .text(d => d.data[0]);
+
+  // Total residuos debajo, alineado a la izquierda
+  column.append("text")
+          .attr("x", 4)
+          .attr("y", -5)
+          .attr("text-anchor", "start")
+          .attr("fill-opacity", 0.8)
+          .style("fill", "white")
+          .style("font-size", "15px")
+          .text(d => `Total de residuos: ${format(d.value)}`);
+
+  const cell = node.filter(d => d.depth === 2);
+
+  // Rectangles with rounded top/bottom corners
+  cell.append("rect")
+          .attr("fill", d => color(d.data[0]))
+          .attr("fill-opacity", 1)
+          .attr("width", d => d.x1 - d.x0)
+          .attr("height", d => d.y1 - d.y0)
+          .attr("rx", d => {
+            const siblings = d.parent.children;
+            return (d === siblings[0] || d === siblings[siblings.length - 1]) ? 6 : 0;
+          })
+          .attr("ry", d => {
+            const siblings = d.parent.children;
+            return (d === siblings[0] || d === siblings[siblings.length - 1]) ? 6 : 0;
+          });
+
+  // Tipo name text (slightly lowered because of spacing)
+  cell.append("text")
+          .attr("x", 3)
+          .attr("y", "2em")
+          .style("font-size", "15px")
+          .style("fill", "white")
+          .text(d => d.data[0]);
+
+  // Value text
+  cell.append("text")
+          .attr("x", 3)
+          .attr("y", "3.5em")
+          .attr("fill-opacity", 0.8)
+          .style("font-size", "12px")
+          .style("fill", "white")
+          .text(d => format(d.value));
+
+  document.querySelector("#chart").appendChild(svg.node());
+
+  // Download function for the SVG
+  window.downloadSVG = function() {
+    const svgNode = document.querySelector("svg");
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svgNode);
+
+    // Add namespaces if missing
+    if(!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)){
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    if(!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)){
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    // Add XML declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    // Create a data URI
+    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+
+    // Create temporary link and trigger download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "marimekko_chart.svg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
+
+</body>
+</html>

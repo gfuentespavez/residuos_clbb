@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comunas to Disposal Sites - Arc Diagram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+        }
+        .hover text {
+            fill: #aaa;
+        }
+        .hover g.primary text {
+            font-weight: bold;
+            fill: #333;
+        }
+        .hover g.secondary text {
+            fill: #333;
+        }
+        .hover path {
+            stroke: #ccc;
+        }
+        .hover path.primary {
+            stroke: #333;
+        }
+    </style>
+</head>
+<body>
+<h1>Comunas to Disposal Sites – Arc Diagram</h1>
+<label for="order">Order:</label>
+<select id="order">
+    <option value="by name">By Name</option>
+    <option value="by type">Comunas First</option>
+    <option value="by degree">By Degree</option>
+</select>
+<svg id="chart"></svg>
+
+<script>
+    const nodes = [
+        { id: "Concepción", group: "Comuna" },
+        { id: "Talcahuano", group: "Comuna" },
+        { id: "Hualpén", group: "Comuna" },
+        { id: "EcoBio", group: "Disposal Site" },
+        { id: "Hidronor", group: "Disposal Site" }
+    ];
+
+    const links = [
+        { source: "Concepción", target: "EcoBio", value: 1 },
+        { source: "Talcahuano", target: "Hidronor", value: 1 },
+        { source: "Hualpén", target: "EcoBio", value: 1 }
+    ];
+
+    const svg = d3.select("#chart");
+    const width = 800;
+    const step = 20;
+    const margin = { top: 20, right: 20, bottom: 20, left: 150 };
+    const height = (nodes.length - 1) * step + margin.top + margin.bottom;
+
+    svg.attr("width", width).attr("height", height);
+
+    const y = d3.scalePoint()
+        .domain(nodes.map(d => d.id))
+        .range([margin.top, height - margin.bottom]);
+
+    const color = d3.scaleOrdinal()
+        .domain(["Comuna", "Disposal Site"])
+        .range(["#1f77b4", "#ff7f0e"]);
+
+    const Y = new Map(nodes.map(d => [d.id, y(d.id)]));
+
+    function arc(d) {
+        const y1 = Y.get(d.source);
+        const y2 = Y.get(d.target);
+        const r = Math.abs(y2 - y1) / 2;
+        return `M${margin.left},${y1}A${r},${r} 0,0,${y1 < y2 ? 1 : 0} ${margin.left},${y2}`;
+    }
+
+    const groupMap = new Map(nodes.map(d => [d.id, d.group]));
+
+    const linkGroup = svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke-opacity", 0.6)
+        .attr("stroke-width", 1.5);
+
+    const linkPath = linkGroup.selectAll("path")
+        .data(links)
+        .join("path")
+        .attr("stroke", d => color(groupMap.get(d.source)))
+        .attr("d", arc);
+
+    const labelGroup = svg.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("text-anchor", "end");
+
+    const label = labelGroup.selectAll("g")
+        .data(nodes)
+        .join("g")
+        .attr("transform", d => `translate(${margin.left},${Y.get(d.id)})`);
+
+    label.append("text")
+        .attr("x", -6)
+        .attr("dy", "0.35em")
+        .attr("fill", d => d3.lab(color(d.group)).darker(2))
+        .text(d => d.id);
+
+    label.append("circle")
+        .attr("r", 3)
+        .attr("fill", d => color(d.group));
+
+    label.append("rect")
+        .attr("fill", "none")
+        .attr("width", margin.left + 40)
+        .attr("height", step)
+        .attr("x", -margin.left)
+        .attr("y", -step / 2)
+        .attr("pointer-events", "all")
+        .on("pointerenter", (event, d) => {
+            svg.classed("hover", true);
+            label.classed("primary", n => n === d);
+            label.classed("secondary", n => links.some(l => l.source === d.id && l.target === n.id || l.target === d.id && l.source === n.id));
+            linkPath.classed("primary", l => l.source === d.id || l.target === d.id).filter(".primary").raise();
+        })
+        .on("pointerout", () => {
+            svg.classed("hover", false);
+            label.classed("primary", false);
+            label.classed("secondary", false);
+            linkPath.classed("primary", false);
+        });
+
+    function update(order) {
+        y.domain(order);
+
+        label.transition()
+            .duration(750)
+            .attr("transform", d => `translate(${margin.left},${y(d.id)})`)
+            .tween("position", function(d) {
+                const i = d3.interpolateNumber(Y.get(d.id), y(d.id));
+                return function(t) {
+                    Y.set(d.id, i(t));
+                    d3.select(this).attr("transform", `translate(${margin.left},${i(t)})`);
+                };
+            });
+
+        linkPath.transition()
+            .duration(750)
+            .attr("d", arc);
+    }
+
+    const degree = d3.rollup(
+        links.flatMap(({ source, target }) => [
+            { node: source, value: 1 },
+            { node: target, value: 1 }
+        ]),
+        v => d3.sum(v, d => d.value),
+        d => d.node
+    );
+
+    const orders = new Map([
+        ["by name", d3.sort(nodes.map(d => d.id))],
+        ["by type", d3.sort(nodes, d => d.group, d => d.id).map(d => d.id)],
+        ["by degree", d3.sort(nodes, d => degree.get(d.id), d => d.id).reverse().map(d => d.id)]
+    ]);
+
+    document.getElementById("order").addEventListener("change", function () {
+        update(orders.get(this.value));
+    });
+
+    // Initial trigger
+    update(orders.get("by name"));
+</script>
+</body>
+</html>
