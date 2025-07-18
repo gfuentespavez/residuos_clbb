@@ -45,7 +45,7 @@ const comunas = {
 };
 
 const rellenos = {
-    "Relleno Cemarc Penco": [-72.9993, -36.7206],
+    "Relleno Cemarc Penco": [-72.9833261, -36.7634115],
     "Relleno Sanitario Arauco Curanilahue": [-73.364, -37.409],
     "Relleno Los Ángeles": [-72.3395474, -37.2998048],
     "Vertedero Licura": [-72.2754906, -37.654802]
@@ -109,7 +109,14 @@ const connections = {
     "Arauco": "Relleno Sanitario Arauco Curanilahue",
     "Curanilahue": "Relleno Sanitario Arauco Curanilahue",
     "Lebu": "Vertedero Licura",
-    "Tirúa": "Relleno Los Ángeles"
+    "Tirúa": "Relleno Los Ángeles",
+    "Mulchén": "Vertedero Licura",
+    "Chiguayante": "Relleno Cemarc Penco",
+    "Hualqui": "Relleno Cemarc Penco",
+    "Hualpén": "Relleno Cemarc Penco",
+    "Talcahuano": "Relleno Cemarc Penco",
+    "Tomé": "Relleno Cemarc Penco",
+    "Penco": "Relleno Cemarc Penco",
 };
 
 map.on('load', () => {
