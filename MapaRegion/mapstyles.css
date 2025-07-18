@@ -1,0 +1,61 @@
+#map {
+    width: 100%;
+    height: 100vh; /* Or whatever height you want */
+}
+
+circle.comuna, circle.relleno {
+    pointer-events: all; /* Enable click for circles only */
+}
+
+
+.sidebar {
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.d3-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+/* Arcos (conectores) */
+path.conector {
+    fill: none;
+    stroke-width: 2.5px;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.6));
+}
+
+
+/* Comunas */
+circle.comuna {
+
+    stroke: none;
+    stroke-width: 1.5px;
+    filter: drop-shadow(0 0 3px #FFD700);
+}
+
+/* Rellenos */
+circle.relleno {
+    stroke: none;
+    stroke-width: 1.5px;
+    filter: drop-shadow(0 0 3px #1E90FF);
+}
+/* Tooltip */
+#tooltip {
+    position: absolute;
+    display: none;
+    background: white;
+    color: black;
+    padding: 6px 10px;
+    border-radius: 4px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 999;
+}
