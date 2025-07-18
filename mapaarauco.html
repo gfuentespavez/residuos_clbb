@@ -8,14 +8,31 @@
   <style>
     #map { height: 100vh; }
     .leaflet-tooltip { font-size: 10px; font-weight: light; }
-    .conector { fill: none; stroke: steelblue; stroke-width: 4; opacity: 0.8; }
+    .conector { fill: none; stroke: steelblue; stroke-width: 3; opacity: 0.8; }
+    #exportBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 <div id="map"></div>
 
+<button id="exportBtn">🖨️ Exportar PDF</button>
+
+<!-- Librerías necesarias -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@1.4.4/dist/svg2pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
   const locations = {
     "Tirúa": [-38.3332, -73.4864],
@@ -23,17 +40,21 @@
     "Contulmo": [-38.0153, -73.2435],
     "Cañete": [-37.8018, -73.3964],
     "Los Álamos": [-37.6284, -73.4695],
-    "Relleno Los Ángeles": [-37.4692, -72.3537],
+    "Arauco": [-37.249, -73.343],
+    "Curanilahue": [-37.473, -73.364],
+    "Relleno Los Ángeles": [-37.2991, -72.3415],
     "Relleno Cemarc Penco": [-36.7206, -72.9993],
-    "Relleno Sanitario Arauco Curanilahue:": [-37.409, -73.364]
+    "Relleno Sanitario Arauco Curanilahue": [-37.409, -73.364],
   };
 
   const connections = {
-    "Tirúa": ["Relleno Los Ángeles", 0 ],
-    "Lebu": ["Relleno Cemarc Penco", 112],
-    "Contulmo": ["Relleno Los Ángeles", 112],
-    "Cañete": ["Relleno Los Ángeles", 109],
-    "Los Álamos": ["Relleno Cemarc Penco", 105]
+    "Tirúa": ["Relleno Los Ángeles"],
+    "Lebu": ["Relleno Cemarc Penco"],
+    "Contulmo": ["Relleno Los Ángeles"],
+    "Cañete": ["Relleno Los Ángeles"],
+    "Los Álamos": ["Relleno Cemarc Penco"],
+    "Arauco": ["Relleno Sanitario Arauco Curanilahue"],
+    "Curanilahue": ["Relleno Sanitario Arauco Curanilahue"],
   };
 
   const map = L.map('map').setView([-37.8, -73.0], 8);
@@ -44,10 +65,10 @@
   for (const [name, [lat, lon]] of Object.entries(locations)) {
     const isRelleno = name.startsWith("Relleno");
     L.circleMarker([lat, lon], {
-      radius: 6,
+      radius: 4,
       color: isRelleno ? 'red' : 'black',
       fillOpacity: 1
-    }).addTo(map).bindTooltip(name, { permanent: true, direction: 'top' });
+    }).addTo(map);
   }
 
   map.whenReady(() => {
@@ -70,19 +91,18 @@
 
       g.attr("transform", `translate(${-topLeft.x},${-topLeft.y})`);
 
-      const arcs = Object.entries(connections).map(([comuna, [relleno, km]]) => {
+      const arcs = Object.entries(connections).map(([comuna, [relleno]]) => {
         const start = project(locations[comuna]);
         const end = project(locations[relleno]);
 
         const dx = end.x - start.x;
         const dy = end.y - start.y;
-        const dr = Math.sqrt(dx * dx + dy * dy) * 0.6;  // arco
+        const dr = Math.sqrt(dx * dx + dy * dy) * 0.6;
 
-        const d = `M${start.x},${start.y} A${dr},${dr} 0 0,1 ${end.x},${end.y}`;
-        const midX = (start.x + end.x) / 2;
-        const midY = (start.y + end.y) / 2;
+        const sweepFlag = start.x < end.x ? 1 : 0;
+        const d = `M${start.x},${start.y} A${dr},${dr} 0 0,${sweepFlag} ${end.x},${end.y}`;
 
-        return { d, km, midX, midY };
+        return { d };
       });
 
       const paths = g.selectAll("path").data(arcs);
@@ -90,20 +110,45 @@
               .attr("class", "conector")
               .merge(paths)
               .attr("d", d => d.d);
-
-      /*const labels = g.selectAll("text").data(arcs);
-      labels.enter().append("text")
-              .attr("font-size", "10px")
-              .attr("fill", "blue")
-              .attr("text-anchor", "middle")
-              .merge(labels)
-              .attr("x", d => d.midX)
-              .attr("y", d => d.midY - 5)
-              .text(d => `${d.km} km`);*/
     }
 
     map.on("zoomend viewreset moveend", update);
     update();
+  });
+
+  // 📄 Exportar a PDF
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    try {
+      const mapContainer = document.getElementById("map");
+      const svgElement = d3.select("svg").node();
+
+      const canvas = await html2canvas(mapContainer, {
+        useCORS: true,
+        backgroundColor: null,
+        scale: 2
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+
+      await svg2pdf(svgElement, pdf, {
+        xOffset: 0,
+        yOffset: 0,
+        scale: 1
+      });
+
+      pdf.save("mapa_con_arcos.pdf");
+    } catch (error) {
+      console.error("Error al exportar el PDF:", error);
+      alert("Hubo un problema al generar el PDF.");
+    }
   });
 </script>
 </body>
