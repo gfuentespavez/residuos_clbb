@@ -2,125 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Garbage Flow Map</title>
+  <title>Canvas Garbage Flow</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
-    body { margin: 0; }
-    #map { position: absolute; width: 100%; top: 0; bottom: 0; }
-    .overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-    circle {
-      r: 3;
-      fill: #00ffff;
-      filter: drop-shadow(0 0 6px #00ffff);
+    body { margin: 0; overflow: hidden; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 0; }
+    canvas#flow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 <div id="map"></div>
-<script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VybWFuZnVlbnRlcyIsImEiOiJjbWN4eG5vbzAwam90Mmpva2lqeWZteXUxIn0._4skowp2WM5yDc_sywRDkA';
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v10',
-    center: [-72.9, -36.8],
-    zoom: 8.5
-  });
+<canvas id="flow"></canvas>
 
-  const garbageData = [
-    { comuna: "Penco", relleno: "Relleno Los Ángeles", toneladas: 50 },
-    { comuna: "Concepción", relleno: "Relleno Los Ángeles", toneladas: 100 },
-    { comuna: "Coronel", relleno: "Relleno Los Ángeles", toneladas: 200 }
-  ];
-
-  const comunaCoords = {
-    "Penco": [-72.9966, -36.7392],
-    "Concepción": [-73.0503, -36.8270],
-    "Coronel": [-73.1406, -37.0101]
-  };
-
-  const rellenoCoords = {
-    "Relleno Cemarc Penco": [-72.9822, -36.7301],
-    "Relleno Los Ángeles": [-72.3375, -37.4697]
-  };
-
-  let svg, arcs = [];
-
-  map.on('load', () => {
-    const container = map.getCanvasContainer();
-    svg = d3.select(container).append("svg").attr("class", "overlay");
-    createArcs();
-    animateDots();
-  });
-
-  map.on('move', () => updateArcPaths());
-  map.on('zoom', () => updateArcPaths());
-
-  function createArcs() {
-    garbageData.forEach(data => {
-      const startLngLat = comunaCoords[data.comuna];
-      const endLngLat = rellenoCoords[data.relleno];
-      const start = map.project(startLngLat);
-      const end = map.project(endLngLat);
-      const dr = Math.hypot(end.x - start.x, end.y - start.y) * 1.2;
-      const arcPath = `M${start.x},${start.y} A${dr},${dr} 0 0,1 ${end.x},${end.y}`;
-
-      const path = svg.append("path")
-              .attr("d", arcPath)
-              .attr("fill", "none")
-              .attr("stroke", "none")
-              .attr("stroke-opacity", 0.2)
-              .attr("stroke-width", 1)
-              .style("filter", "drop-shadow(0 0 3px #00ffff)");
-
-      const dotCount = Math.max(5, Math.floor(Math.sqrt(data.toneladas) * 1.5));
-      const dotGroup = [];
-
-      for (let i = 0; i < dotCount; i++) {
-        const circle = svg.append("circle")
-                .attr("r", 3)
-                .attr("fill", "#00ffff")
-                .style("filter", "drop-shadow(0 0 6px #00ffff)");
-        dotGroup.push({ circle, t: i / dotCount });
-      }
-
-      arcs.push({ path, startLngLat, endLngLat, dotGroup });
-    });
-  }
-
-  function updateArcPaths() {
-    arcs.forEach(arc => {
-      const start = map.project(arc.startLngLat);
-      const end = map.project(arc.endLngLat);
-      const dr = Math.hypot(end.x - start.x, end.y - start.y) * 1.2;
-      const arcPath = `M${start.x},${start.y} A${dr},${dr} 0 0,1 ${end.x},${end.y}`;
-      arc.path.attr("d", arcPath);
-    });
-  }
-
-  function animateDots() {
-    function step() {
-      arcs.forEach(arc => {
-        const pathEl = arc.path.node();
-        const pathLen = pathEl.getTotalLength();
-        arc.dotGroup.forEach(dot => {
-          dot.t = (dot.t + 0.002) % 1;
-          const pt = pathEl.getPointAtLength(dot.t * pathLen);
-          const fade = 0.08;
-          const opacity =
-                  dot.t < fade ? dot.t / fade :
-                          dot.t > 1 - fade ? (1 - dot.t) / fade : 1;
-          dot.circle
-                  .attr("cx", pt.x)
-                  .attr("cy", pt.y)
-                  .attr("opacity", opacity);
-        });
-      });
-      requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-</script>
+<!-- Load your modular scripts -->
+<script type="module" src="./main.js"></script>
 </body>
 </html>
