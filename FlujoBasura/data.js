@@ -1,52 +1,54 @@
+import { routes } from './routes.js';
+
 export const garbageData = [
-    // Relleno Cemarc Penco
-    { comuna: "Penco", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Concepción", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Tomé", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "San Pedro de la Paz", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Coronel", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Lota", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Chiguayante", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Hualqui", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Lebu", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Santa Juana", relleno: "Relleno Cemarc Penco", toneladas: 50 },
-    { comuna: "Los Álamos", relleno: "Relleno Cemarc Penco", toneladas: 50 },
+    // Cemarc
+    { comuna: "Concepción", relleno: "Relleno Cemarc Penco", toneladas: 50721.1, route: "concepcionToCemarc" },
+    { comuna: "Penco", relleno: "Relleno Cemarc Penco", toneladas: 19696.85, route: "pencoToCemarc" },
+    { comuna: "Tomé", relleno: "Relleno Cemarc Penco", toneladas: 23894.51, route: "tomeToCemarc" },
+    { comuna: "San Pedro de la Paz", relleno: "Relleno Cemarc Penco", toneladas: 54910.38, route: "sanpedroToCemarc" },
+    { comuna: "Coronel", relleno: "Relleno Cemarc Penco", toneladas: 51438.31, route: "coronelToCemarc" },
+    { comuna: "Lota", relleno: "Relleno Cemarc Penco", toneladas: 26991.00658, route: "lotaToCemarc" },
+    { comuna: "Chiguayante", relleno: "Relleno Cemarc Penco", toneladas: 33866.13, route: "chiguayanteToCemarc" },
+    { comuna: "Hualqui", relleno: "Relleno Cemarc Penco", toneladas: 9074.6, route: "hualquiToCemarc" },
+    { comuna: "Lebu", relleno: "Relleno Cemarc Penco", toneladas: 9172.43, route: "lebuToCemarc" },
+    { comuna: "Santa Juana", relleno: "Relleno Cemarc Penco", toneladas: 4775, route: "santajuanaToCemarc" },
+    { comuna: "Los Álamos", relleno: "Relleno Cemarc Penco", toneladas: 5421.3, route: "losalamosToCemarc" },
 
-    //Relleno Los Ángeles
-    { comuna: "Los Ángeles", relleno: "Relleno Los Ángeles", toneladas: 301},
-    { comuna: "Santa Bárbara", relleno: "Relleno Los Ángeles", toneladas: 301},
-    { comuna: "Alto Biobío", relleno: "Relleno Los Ángeles", toneladas: 102},
-    { comuna: "Nacimiento", relleno: "Relleno Los Ángeles", toneladas: 120 },
-    { comuna: "Tirúa", relleno: "Relleno Los Ángeles", toneladas: 100 },
-    { comuna: "Contulmo", relleno: "Relleno Los Ángeles", toneladas: 50 },
-    { comuna: "Cañete", relleno: "Relleno Los Ángeles", toneladas: 100 },
-    { comuna: "Quilleco", relleno: "Relleno Los Ángeles", toneladas: 100},
-    { comuna: "Tucapel", relleno: "Relleno Los Ángeles", toneladas: 100},
-    { comuna: "Laja", relleno: "Relleno Los Ángeles", toneladas: 20},
-    { comuna: "Yumbel", relleno: "Relleno Los Ángeles", toneladas: 100},
-    { comuna: "Cabrero", relleno: "Relleno Los Ángeles", toneladas: 200},
+    // Los Ángeles
+    { comuna: "Los Ángeles", relleno: "Relleno Los Ángeles", toneladas: 84295.74, route: "losangelesToLosAngeles" },
+    { comuna: "Santa Bárbara", relleno: "Relleno Los Ángeles", toneladas: 6522.80, route: "santabarbaraToLosAngeles" },
+    { comuna: "Alto Biobío", relleno: "Relleno Los Ángeles", toneladas: 100, route: "altobiobioToLosAngeles" },
+    { comuna: "Nacimiento", relleno: "Relleno Los Ángeles", toneladas: 14161.659, route: "nacimientoToLosAngeles" },
+    { comuna: "Tirúa", relleno: "Relleno Los Ángeles", toneladas: 6578.95, route: "tiruaToLosAngeles" },
+    { comuna: "Contulmo", relleno: "Relleno Los Ángeles", toneladas: 3768.30, route: "contulmoToLosAngeles" },
+    { comuna: "Cañete", relleno: "Relleno Los Ángeles", toneladas: 9148.57, route: "caneteToLosAngeles" },
+    { comuna: "Quilleco", relleno: "Relleno Los Ángeles", toneladas: 5933.39, route: "quillecoToLosAngeles" },
+    { comuna: "Tucapel", relleno: "Relleno Los Ángeles", toneladas: 5096.33, route: "tucapelToLosAngeles" },
+    { comuna: "Laja", relleno: "Relleno Los Ángeles", toneladas: 7581.64, route: "lajaToLosAngeles" },
+    { comuna: "Yumbel", relleno: "Relleno Los Ángeles", toneladas: 7560.22, route: "yumbelToLosAngeles" },
+    { comuna: "Cabrero", relleno: "Relleno Los Ángeles", toneladas: 11066.57, reciclaje: 300, route: "cabreroToLosAngeles" },
 
-    //Relleno Las Cruces
-    { comuna: "Talcahuano", relleno: "Relleno Fundo Las Cruces", toneladas: 350 },
-    { comuna: "Antuco", relleno: "Relleno Fundo Las Cruces", toneladas: 40},
-    { comuna: "Hualpén", relleno: "Relleno Fundo Las Cruces", toneladas: 120 },
-    { comuna: "Florida", relleno: "Relleno Fundo Las Cruces", toneladas: 150},
+    // Las Cruces
+    { comuna: "Talcahuano", relleno: "Relleno Fundo Las Cruces", toneladas: 65853.167, route: "talcahuanoToLasCruces" },
+    { comuna: "Antuco", relleno: "Relleno Fundo Las Cruces", toneladas: 1360.418, route: "antucoToLasCruces" },
+    { comuna: "Hualpén", relleno: "Relleno Fundo Las Cruces", toneladas: 36953.05, route: "hualpenToLasCruces" },
+    { comuna: "Florida", relleno: "Relleno Fundo Las Cruces", toneladas: 3139.89, route: "floridaToLasCruces" },
 
-    //Vertedero Licura Mulchén
-    { comuna: "San Rosendo", relleno: "Vertedero Licura", toneladas: 20},
-    { comuna: "Quilaco", relleno: "Vertedero Licura", toneladas: 150 },
-    { comuna: "Negrete", relleno: "Vertedero Licura", toneladas: 150 },
-    { comuna: "Mulchén", relleno: "Vertedero Licura", toneladas: 150 },
+    // Licura
+    { comuna: "San Rosendo", relleno: "Vertedero Licura", toneladas: 1463.18, route: "sanrosendoToLicura" },
+    { comuna: "Quilaco", relleno: "Vertedero Licura", toneladas: 2484.31, route: "quilacoToLicura" },
+    { comuna: "Negrete", relleno: "Vertedero Licura", toneladas: 6253.20, route: "negreteToLicura" },
+    { comuna: "Mulchén", relleno: "Vertedero Licura", toneladas: 7765.79, route: "mulchenToLicura" },
 
-    //Relleno Arauco - Chue
-    { comuna: "Arauco", relleno: "Relleno Sanitario Arauco Curanilahue", toneladas: 200},
-    { comuna: "Curanilahue", relleno: "Vertedero Licura", toneladas: 200},
+    // Arauco - Chue
+    { comuna: "Arauco", relleno: "Relleno Sanitario Arauco Curanilahue", toneladas: 12842.59, route: "araucoToAraucoChue" },
+    { comuna: "Curanilahue", relleno: "Relleno Sanitario Arauco Curanilahue", toneladas: 9754.62, route: "curanilahueToAraucoChue" }
 ];
 
 export const comunaCoords = {
     "Alto Biobío": [-71.3331, -37.9815],
     "Antuco": [-71.6628, -37.3353],
-    "Arauco": [-73.3142, -37.2439],
+    "Arauco": [-73.31955, -37.24602],
     "Cabrero": [-72.4036, -37.0294],
     "Cañete": [-73.3957, -37.8003],
     "Chiguayante": [-73.0161, -36.9158],
@@ -85,4 +87,12 @@ export const rellenoCoords = {
     "Relleno Los Ángeles": [-72.3395474, -37.2998048],
     "Vertedero Licura": [-72.2754906, -37.654802],
     "Relleno Fundo Las Cruces": [-72.1686415, -36.6967439],
+};
+
+export const rellenoColors = {
+    "Relleno Cemarc Penco": "#00ffff",
+    "Relleno Los Ángeles": "#00ff99",
+    "Relleno Fundo Las Cruces": "#ffcc00",
+    "Vertedero Licura": "#ff6666",
+    "Relleno Sanitario Arauco Curanilahue": "#ff00ff"
 };
